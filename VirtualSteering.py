@@ -260,7 +260,12 @@ while True:
         last_hand_count = current_hand_count
 
     cv2.imshow('frame', frame)
+
     key = cv2.waitKey(1) & 0xFF
+
+    if cv2.getWindowProperty('frame', cv2.WND_PROP_VISIBLE) < 1:
+        print("Window closed")
+        break
     if key == ord('q'):
         print("Quit")
         break
