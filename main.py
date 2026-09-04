@@ -14,9 +14,8 @@ hands = mp_hands.Hands(
 )
 mp_drawing = mp.solutions.drawing_utils
 
-# --- CAMERA SETUP ---
 cap = None
-for index in range(4):
+for index in range(4):      # CHecking for diff cameras
     temp_cap = cv2.VideoCapture(index, cv2.CAP_DSHOW)
     if temp_cap.isOpened():
         ret, frame = temp_cap.read()
@@ -40,7 +39,7 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 cv2.setUseOptimized(True)
 
-# --- GAMEPAD SAFE INITIALIZATION ---
+# initiallizing the game
 try:
     import vgamepad as vg
 
@@ -66,7 +65,7 @@ brake_pressed = False
 keyboard = KController()
 
 
-# --- REVERTED ORIGINAL FIST DETECTION LOGIC ---
+# need to check if hand is open or closed using ratio
 def is_fist(hand_landmarks):
     wrist = hand_landmarks.landmark[0]
     knuckle = hand_landmarks.landmark[9]
@@ -79,7 +78,7 @@ def is_fist(hand_landmarks):
         return False
 
     ratio = tip_len / palm_len
-    return ratio < 1.50  # Original scale-invariant threshold
+    return ratio < 1.50
 
 
 if gamepad_ready:
@@ -111,7 +110,7 @@ while True:
             knuckle = hand_landmarks.landmark[9]
             tip = hand_landmarks.landmark[12]
 
-            # Reverted to match original tip_len / palm_len calculation for visual debug
+
             palm_len = math.hypot(knuckle.x - wrist.x, knuckle.y - wrist.y)
             tip_len = math.hypot(tip.x - wrist.x, tip.y - wrist.y)
             ratio = tip_len / palm_len if palm_len > 0 else 0.0
@@ -124,7 +123,7 @@ while True:
             cv2.putText(frame, f"R:{ratio:.2f}", (knuckle_x_px - 20, knuckle_y_px - 15),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-    # --- STEERING CALCULATION ---
+    # Calculating the steering with the angle of the bar
     if len(knuckle_points) == 2:
         left_pt, right_pt = sorted(knuckle_points, key=lambda p: p[0])
         x1, y1 = left_pt
@@ -162,7 +161,7 @@ while True:
     cv2.putText(frame, f"Mode: {mode_text}", (470, 30),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 0), 2)
 
-    # --- INPUT DISPATCH ---
+    # giving input of throttle and trhe steering
     if len(knuckle_points) == 2 and results.multi_hand_landmarks:
         fist_count = sum(1 for hand in results.multi_hand_landmarks if is_fist(hand))
         is_gas = (fist_count == 2)
@@ -272,7 +271,7 @@ while True:
         analoge = not analoge
         print("Discrete/Analogue mode toggled")
 
-# --- CLEANUP ON EXIT ---
+
 if gamepad_ready:
     gamepad.reset()
     gamepad.update()
